@@ -519,6 +519,9 @@ func (self *worker) updateSnapshot() {
 }
 
 func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsByPriceAndNonce, bc *core.BlockChain, coinbase common.Address) {
+
+    log.Info("CommitTransactions called in miner.")
+
 	if env.gasPool == nil {
 		env.gasPool = new(core.GasPool).AddGas(env.header.GasLimit)
 	}
@@ -604,6 +607,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 }
 
 func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, coinbase common.Address, gp *core.GasPool) (error, []*types.Log) {
+    log.Info("Phil Log - Miner called commit.")
 	snap := env.state.Snapshot()
 
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, &env.header.GasUsed, vm.Config{})
