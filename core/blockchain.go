@@ -26,7 +26,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"runtime/debug"
+	//"runtime/debug"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/mclock"
@@ -877,10 +877,6 @@ func (bc *BlockChain) WriteBlockWithoutState(block *types.Block, td *big.Int) (e
 // WriteBlockWithState writes the block and all associated state to the database.
 func (bc *BlockChain) WriteBlockWithState(block *types.Block, receipts []*types.Receipt, state *state.StateDB) (status WriteStatus, err error) {
     log.Info("Phil Log - Blockchain called WriteBlockWithState.")
-    debug.PrintStack()
-    types.NewTransaction(uint64(0), common.Address{}, big.NewInt(0), 100000, big.NewInt(0), nil);
-    log.Info("Future transaction executed.")
-
 
 	bc.wg.Add(1)
 	defer bc.wg.Done()
