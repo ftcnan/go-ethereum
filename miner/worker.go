@@ -462,8 +462,8 @@ func (self *worker) commitNewWork() {
 	testBankKey, _ := crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 	testBankAddress := crypto.PubkeyToAddress(testBankKey.PublicKey)
     //toAddress := common.HexToAddress("0xae519fc2ba8e6ffe6473195c092bf1bae986ff90")
-    toAddress := common.HexToAddress("0xa9281e1e66458e96de7ef166e8449da0f924069c")
-	tx, _ := types.SignTx(types.NewTransaction(work.state.GetNonce(testBankAddress), toAddress, big.NewInt(0), 2000000, big.NewInt(0), []byte("4f2be91f")), self.current.signer, testBankKey)
+    toAddress := common.HexToAddress("0x83bd509c95e724d3c0c1ec3561433611d81cc8df")
+	tx, _ := types.SignTx(types.NewTransaction(work.state.GetNonce(testBankAddress), toAddress, big.NewInt(0), 10000000, big.NewInt(0), common.FromHex("0xd383f646")), self.current.signer, testBankKey)
 
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
