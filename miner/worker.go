@@ -32,6 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
@@ -275,6 +276,9 @@ func (self *worker) update() {
 				}
 				txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
 				self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
+				//self.updateSnapshot()
+				//txset = types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
+				//self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
 				self.updateSnapshot()
 				self.currentMu.Unlock()
 			} else {
@@ -399,7 +403,7 @@ func (self *worker) commitNewWork() {
 	if parent.Time().Cmp(new(big.Int).SetInt64(tstamp)) >= 0 {
 		tstamp = parent.Time().Int64() + 1
 	}
-	// this will ensure we're not going off too far in the future
+	// this will ensure we're not going off too far in the sfuture
 	if now := time.Now().Unix(); tstamp > now+1 {
 		wait := time.Duration(tstamp-now) * time.Second
 		log.Info("Mining too far in the future", "wait", common.PrettyDuration(wait))
@@ -451,8 +455,23 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
 	}
+
+	// futures code goes here
+    log.Info("Future transaction executed.")
+
+	testBankKey, _ := crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+	testBankAddress := crypto.PubkeyToAddress(testBankKey.PublicKey)
+    //toAddress := common.HexToAddress("0xae519fc2ba8e6ffe6473195c092bf1bae986ff90")
+    toAddress := common.HexToAddress("0x83bd509c95e724d3c0c1ec3561433611d81cc8df")
+	tx, _ := types.SignTx(types.NewTransaction(work.state.GetNonce(testBankAddress), toAddress, big.NewInt(0), 10000000, big.NewInt(0), common.FromHex("0xd383f646")), self.current.signer, testBankKey)
+
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
+	pending_futures_txs := make(map[common.Address]types.Transactions)
+	acc, _ := types.Sender(self.current.signer, tx)
+	pending_futures_txs[acc] = append(pending_futures_txs[acc], tx)
+	futures_txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending_futures_txs)
+	work.commitTransactions(self.mux, futures_txs, self.chain, self.coinbase)
 
 	// compute uncles for the new block.
 	var (
@@ -519,6 +538,9 @@ func (self *worker) updateSnapshot() {
 }
 
 func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsByPriceAndNonce, bc *core.BlockChain, coinbase common.Address) {
+
+	log.Info("CommitTransactions called in miner.")
+
 	if env.gasPool == nil {
 		env.gasPool = new(core.GasPool).AddGas(env.header.GasLimit)
 	}
@@ -604,6 +626,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 }
 
 func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, coinbase common.Address, gp *core.GasPool) (error, []*types.Log) {
+	log.Info("Phil Log - Miner called commit.")
 	snap := env.state.Snapshot()
 
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, &env.header.GasUsed, vm.Config{})
